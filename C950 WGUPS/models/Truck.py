@@ -11,6 +11,9 @@ class Truck:
         self.nextAddress = None
         self.PackageInProgess = None
         self.currentDistance = 0
+        self.totalDeliveryTime = 0
+        self.lastDepartureTime = 0
+        self.estimatedArrivalTime = 0
 
     # Print Truck Information for testing
     def print(self):
@@ -149,7 +152,7 @@ class Truck:
         # Find out how far away the hub is
         self.setCurrentDistance(float(currentLocation.getDistance(hub.getId())))
         print("Truck", self.getId(), "is returning to Hub. Currently", self.getCurrentDistance(), "miles away!")
-        # TODO: Travel to the hub. For now we just add the distance to total distance traveled.
+        # TODO: Travel to the hub. For now, we just add the distance to total distance traveled.
         self.totalMiles += self.getCurrentDistance()
         self.setCurrentAddress(hub.getAddress())
         self.setNextAddress(None)

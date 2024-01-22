@@ -13,10 +13,6 @@ global delivered_list
 global packageHash
 global distanceHash
 
-def getLocationByPackage(package):
-    location_distances = distanceHash.search(package.getAddress())
-    return location_distances
-
 
 if __name__ == '__main__':
     # define and setup packageHash to store package information
@@ -86,44 +82,56 @@ if __name__ == '__main__':
     truck3.setPackage(packageHash.search(33))
     truck3.setPackage(packageHash.search(35))
 
+    # Assign the two drivers to the first two trucks
     truck1.setDriver(driver1)
     truck2.setDriver(driver2)
     print("\n")
 
-    for i in range(len(truck1.getPackages())):
+    # Send truck1 out to deliver packages
+    while len(truck1.getPackages()) > 0:
         truck1.chooseClosestPackage(distanceHash)
-        print("\n")
         truck1.deliverPackage(delivered_list)
-        print("\n")
-        truck1.print()
-        print("\n")
+    # Return truck1 to hub
     truck1.toHub(distanceHash)
     truck1.setDriver(None)
 
-    for i in range(len(truck2.getPackages())):
+    # Send truck2 out to deliver packages
+    while len(truck2.getPackages()) > 0:
         truck2.chooseClosestPackage(distanceHash)
-        print("\n")
         truck2.deliverPackage(delivered_list)
-        print("\n")
-        truck2.print()
-        print("\n")
+    # Return truck2 to hub
     truck2.toHub(distanceHash)
     truck2.setDriver(None)
 
-    truck3.setDriver(driver1)
-
-    for i in range(len(truck3.getPackages())):
+    # Send truck3 out to deliver packages
+    while len(truck3.getPackages()) > 0:
         truck3.chooseClosestPackage(distanceHash)
-        print("\n")
         truck3.deliverPackage(delivered_list)
-        print("\n")
-        truck3.print()
-        print("\n")
-
-    for package in delivered_list:
-        print(package.getId())
-
+    # Return truck2 to hub
     truck3.toHub(distanceHash)
+    truck3.setDriver(None)
+    # Print out the total delivered packages
+    print("Packages delivered today: ", end="")
+    for package in delivered_list:
+        print(package.getId(), end=", ")
+
     truck1.print()
     truck2.print()
     truck3.print()
+
+# constant loop taking time into account (each loop is 1 minute)
+# create master time object
+#
+# Still load the trucks:
+# Set a total_delivery_time variable to zero
+# When a truck is first sent out, update its departure time from last location (hub is 8:00am for first 2 trucks)
+# When the next package is chosen, update estimated arrival time by using its distance to calculate.
+#
+# Do this for trucks that have a driver assigned to them.
+# If the estimated arrival time is the current time or already passed:
+    # Add the difference between the departure time from last location and the estimated arrival time to
+    # the total delivery time.
+    # Set the departure time from last location to the estimated arrival time
+    # Choose the next package to deliver:
+    # (use the current time to see if delayed packages are available, or the wrong address package)
+    # Update the estimated arrival time by adding the travel time to the current time.
