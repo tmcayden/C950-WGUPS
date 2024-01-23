@@ -44,7 +44,7 @@ class PackageHash:
                 return True
 
     # Setup package hash with formatted csv file as input
-    def loadPackageData(self, fileName):
+    def loadPackageData(self, fileName, masterPackageList):
         with open(fileName) as packages:
             packageData = csv.reader(packages, delimiter=',')
             for package in packageData:
@@ -62,3 +62,4 @@ class PackageHash:
                 package = Package(pId, pAddress, pCity, pState, pZipCode, pDeadline, pWeight, pNotes, pStatus,
                                   deliveryTime)
                 self.insert(pId, package)
+                masterPackageList.append(package)
