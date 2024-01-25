@@ -47,6 +47,7 @@ class Truck:
     # Add Packages to Trucks
     def setPackage(self, package):
         if len(self.packages) < 16:
+            package.setStatus("On Truck")
             self.packages.append(package)
         else:
             print("Unable to add package: The truck has reached its capacity!")
@@ -102,6 +103,9 @@ class Truck:
     def getDepartureTime(self):
         return self.lastDepartureTime
 
+    def getTotalMiles(self):
+        return self.totalMiles
+
 
     # Main algorithm to choose the closest package based on current location.
     # This function is called upon arriving at the next location.
@@ -148,6 +152,8 @@ class Truck:
         # Update the time the package was chosen to be delivered
         package = self.getPackageInProgress()
         package.setBeginDeliveryTime(self.lastDepartureTime)
+        # Set the package status to display chosen next for delivery
+        package.setStatus("Selected for next delivery")
 
 
     # Function called after arriving to the package location.
@@ -236,6 +242,8 @@ class Truck:
         # Find which packages have priority based on deadline
         priority = []
         for package in self.getPackages():
+            if package.getNote() == "Wrong address listed":
+                continue
             if package.getDeadline() != datetime.timedelta(hours=16):
                 priority.append(package)
 

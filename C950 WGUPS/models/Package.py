@@ -29,13 +29,28 @@ class Package:
 
 
     def listData(self):
-        print("Package ID:", self.id, "\nAddress:", self.address, ",", self.city, ",", self.state, self.zip_code,
+        print("Package ID:", self.id, "\n###\nAddress:", self.address, ",", self.city, ",", self.state, self.zip_code,
               "\nDeadline:", self.deadline, "\nWeight:", self.weight, "\nSpecial Note:", self.notes, "\nStatus:",
               self.status, "\nTime Selected For Delivery:", self.beginDeliveryTime, "\nTime Delivered:",
               self.deliveryTime, end="\n\n")
 
     def getId(self):
         return self.id
+
+    def setCity(self, newCity):
+        self.city = newCity
+
+    def setNote(self, newNote):
+        self.notes = newNote
+
+    def setZip(self, newZip):
+        self.zip_code = newZip
+
+    def getNote(self):
+        return self.notes
+
+    def setAddress(self, newAddress):
+        self.address = newAddress
 
     def getAddress(self):
         return self.address
@@ -45,6 +60,9 @@ class Package:
 
     def setDeliveryTime(self, time):
         self.deliveryTime = time
+
+    def setStatus(self, status):
+        self.status = status
 
     def updateStatus(self):
         if self.deliveryTime <= self.deadline:
