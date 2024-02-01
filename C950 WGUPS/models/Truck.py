@@ -11,7 +11,7 @@ class Truck:
         self.driverId = None
         self.status = "At Hub"
         self.nextAddress = None
-        self.PackageInProgess = None
+        self.packageInProgress = None
         self.currentDistance = 0
         self.totalDeliveryTime = datetime.timedelta(hours=0)
         self.lastDepartureTime = None
@@ -21,17 +21,20 @@ class Truck:
     # Print Truck Information for testing
     def print(self):
         print("\n## Information for Truck ID:", self.id, "##\n\nCapacity:", self.capacity,
-              "\nSpeed:", self.speed, "\ntotalMiles:", self.totalMiles, "\nTotal Delivery Time:", self.totalDeliveryTime, "\nCurrent Address:",
+              "\nSpeed:", self.speed, "\ntotalMiles:", self.totalMiles, "\nCurrent Address:",
               self.currentAddress, "\nPackages:", end=" ")
         for package in self.packages:
+
             print(package.id, end=", ")
         print("\nDriverId:", self.driverId, "\nStatus:", self.status, "\nNext Address:", self.nextAddress)
 
+    # Below is a large chunk of getters and setters. I don't feel the need to describe the purpose of each.
     def getId(self):
         return self.id
 
     # Set the truck Driver
     def setDriver(self, driver):
+        # Find out what the ID of the current driver is, and set it accordingly
         if driver != None:
             self.driverId = driver.getId()
             driver.setStatus("On Truck " + str(self.getId()))
@@ -46,9 +49,11 @@ class Truck:
 
     # Add Packages to Trucks
     def setPackage(self, package):
-        if len(self.packages) < 16:
+        # See if truck has already reached its limit
+        if len(self.packages) < self.capacity:
             package.setStatus("On Truck")
             self.packages.append(package)
+            package.setTruck(str(self.getId()))
         else:
             print("Unable to add package: The truck has reached its capacity!")
 
@@ -57,6 +62,9 @@ class Truck:
         for package in self.packages:
             if package.getId() == packageId:
                 return package
+            else:
+                print("Unable to find package:", packageId, "on truck", self.getId())
+                return None
     def getPackages(self):
         return self.packages
 
@@ -139,22 +147,16 @@ class Truck:
         self.setPackageInProgress(nextPackage)
         self.setCurrentDistance(minDistance)
 
-        #print("Truck", self.getId(), "is beginning to deliver package", nextPackage.getId(), "Which is at the address:",
-        #      self.nextAddress + ":", minDistance, "miles away!")
-        #print("Travel time", self.getCurrentTravelTime())
-        #print("Estimated Arrival Time: ", self.getEstimatedArrivalTime())
-
     # Called to update the time the truck left its last stop, and when it will arrive at the next stop
     def updateDepartureTimeAndEstimatedArrivalTime(self):
         # Calculate the estimated time the package will be delivered
         self.setCurrentTravelTime(self.getTravelTime())
-        self.setEstimatedArrivalTime(self.lastDepartureTime + self.getCurrentTravelTime())
+        self.setEstimatedArrivalTime(self.getDepartureTime() + self.getCurrentTravelTime())
         # Update the time the package was chosen to be delivered
         package = self.getPackageInProgress()
-        package.setBeginDeliveryTime(self.lastDepartureTime)
+        package.setBeginDeliveryTime(self.getDepartureTime())
         # Set the package status to display chosen next for delivery
         package.setStatus("Selected for next delivery")
-
 
     # Function called after arriving to the package location.
     # This updates the truck information to display where the truck and will also add the delivery time to the package.
@@ -171,16 +173,15 @@ class Truck:
         # Update the total delivery time
         self.totalDeliveryTime += self.getCurrentTravelTime()
         # Update the departure time
-        self.lastDepartureTime = self.getEstimatedArrivalTime()
+        self.setDepartureTime(self.getEstimatedArrivalTime())
         # Update the current address
         self.setCurrentAddress(package.getAddress())
         # Add the miles it took to travel to this delivery point to the total miles driven for the truck
         self.totalMiles += self.getCurrentDistance()
-        #print("Truck", self.getId(), "delivered", package.getId(), "at", self.getEstimatedArrivalTime())
         # Add the package to the list of delivered packages
         delivered_list.append(package)
         # Remove the package from the truck's package list
-        self.packages.remove(package)
+        self.getPackages().remove(package)
         # Set the current pacakge in progress to none
         self.setPackageInProgress(None)
 
@@ -196,12 +197,10 @@ class Truck:
         currentLocation = distanceHash.search(self.getCurrentAddress())
         # Find out how far away the hub is
         self.setCurrentDistance(float(currentLocation.getDistance(hub.getId())))
-        #print("Truck", self.getId(), "is returning to Hub. Currently", self.getCurrentDistance(), "miles away!")
-        # TODO: Travel to the hub. For now, we just add the distance to total distance traveled.
         # Calculate how long it will tak to get to the hub
         self.setCurrentTravelTime(self.getTravelTime())
         # Update Estimated Arrival Time
-        self.setEstimatedArrivalTime(self.lastDepartureTime + self.getCurrentTravelTime())
+        self.setEstimatedArrivalTime(self.getDepartureTime() + self.getCurrentTravelTime())
 
     # Method for once the truck actually arrives at the hub.
     def arriveAtHub(self):

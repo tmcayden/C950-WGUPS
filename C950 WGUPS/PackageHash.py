@@ -1,4 +1,3 @@
-from models.Location import Location
 from models.Package import Package
 import csv
 class PackageHash:

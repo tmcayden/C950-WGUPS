@@ -12,6 +12,7 @@ class Package:
         self.status = status
         self.beginDeliveryTime = None
         self.deliveryTime = deliveryTime
+        self.truck = None
 
         # Set the deadline as a datetime object
         if deadline == "EOD":
@@ -27,12 +28,12 @@ class Package:
             # Create datetime object with hours and minutes
             self.deadline = datetime.timedelta(hours=int(hours), minutes=int(minutes))
 
-
+    # Function to print package info. Used when the user needs to lookup information about the package
     def listData(self):
         print("Package ID:", self.id, "\n###\nAddress:", self.address, ",", self.city, ",", self.state, self.zip_code,
-              "\nDeadline:", self.deadline, "\nWeight:", self.weight, "\nSpecial Note:", self.notes, "\nStatus:",
-              self.status, "\nTime Selected For Delivery:", self.beginDeliveryTime, "\nTime Delivered:",
-              self.deliveryTime, end="\n\n")
+              "\nDeadline:", self.deadline, "\nWeight:", self.weight, "\nSpecial Note:", self.notes,
+              "\nAssigned to Truck:", self.truck, "\nStatus:", self.status, "\nTime Selected For Delivery:",
+              self.beginDeliveryTime, "\nTime Delivered:", self.deliveryTime, end="\n\n")
 
     def getId(self):
         return self.id
@@ -64,11 +65,16 @@ class Package:
     def setStatus(self, status):
         self.status = status
 
+    def getDeadline(self):
+        return self.deadline
+
+    # This function determines if the package is delivered on time. It will check if the deadline for delivery has
+    # already passed. If it has, it updated that the package was late. If it was on time, it's updated accordingly.
     def updateStatus(self):
         if self.deliveryTime <= self.deadline:
             self.status = "Delivered On Time"
         else:
             self.status = "Delivered Late"
 
-    def getDeadline(self):
-        return self.deadline
+    def setTruck(self, truck):
+        self.truck = truck

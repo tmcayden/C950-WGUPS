@@ -1,3 +1,5 @@
+# This is a location object that will mostly be used to access each locations distance row
+# from the distances sheet provided.
 class Location:
     def __init__(self, id, name, address, zip_code, distances):
         self.id = id
@@ -12,18 +14,8 @@ class Location:
     def listData(self):
         return (self.id, self.name, self.address, self.zip_code, self.distances)
 
-    def getSize(self):
-        return len(self.distances)
-
-    def getName(self):
-        return self.name
-
-    def getMinDistance(self):
-        min = 100
-        for distance in self.distances:
-            if distance < min:
-                min = distance
-
+    # Returns the ID (the index of the distance row) for the distance object
+    # This is used to compare the distance of one location to another
     def getId(self):
         return self.id
 

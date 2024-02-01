@@ -1,4 +1,5 @@
 class Driver:
+    # initialize the class with an ID and status at the hub
     def __init__(self, id):
         self.id = id
         self.status = "At Hub"

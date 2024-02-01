@@ -7,10 +7,12 @@ from models.Driver import Driver
 from PackageHash import PackageHash
 from DistanceHash import DistanceHash
 
+# Helper function to print all package data
 def printPackages():
     for package in masterPackageList:
         package.listData()
 
+# Called to run the delivery program after the user selects an option from the menu below.
 def main():
     # Create a list to keep track of which packages have been successfully delivered
     global delivered_list
@@ -180,6 +182,8 @@ def main():
                 truck3.updateDepartureTimeAndEstimatedArrivalTime()
                 # Bool to know if truck3 has left so the departure time isn't updating each iteration
                 truck3Left = True
+                # Set status to waiting for driver
+                truck3.setStatus("Waiting for driver...")
             # Check to see if the truck3 has arrived at its location
             if truck3.getEstimatedArrivalTime() <= globalTime and truck3.getStatus() != "Finished Deliveries":
                 # See if it was returning to the hub
@@ -212,6 +216,9 @@ def main():
         printPackages()
     # Print the total miles driven for all trucks at the end of each request. This will change based on the search
     # time entered in. (If the user requests info at a specific time, the truck mileage will be accurate to that time)
+    truck1.print()
+    truck2.print()
+    truck3.print()
     print("\nTotal miles traveled on all trucks:", round(truck1.getTotalMiles() + truck2.getTotalMiles() +
                                                          truck3.getTotalMiles(), 2), "\n")
     input("\nPress enter to return to the menu.")
