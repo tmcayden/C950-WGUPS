@@ -1,3 +1,5 @@
+import datetime
+
 class Truck:
     def __init__(self, id, currentAddress):
         self.id = id
@@ -9,8 +11,12 @@ class Truck:
         self.driverId = None
         self.status = "At Hub"
         self.nextAddress = None
-        self.PackageInProgess = None
+        self.packageInProgress = None
         self.currentDistance = 0
+        self.totalDeliveryTime = datetime.timedelta(hours=0)
+        self.lastDepartureTime = None
+        self.estimatedArrivalTime = datetime.timedelta(hours=0)
+        self.currentTravelTime = datetime.timedelta(hours=0)
 
     # Print Truck Information for testing
     def print(self):
@@ -18,14 +24,17 @@ class Truck:
               "\nSpeed:", self.speed, "\ntotalMiles:", self.totalMiles, "\nCurrent Address:",
               self.currentAddress, "\nPackages:", end=" ")
         for package in self.packages:
+
             print(package.id, end=", ")
         print("\nDriverId:", self.driverId, "\nStatus:", self.status, "\nNext Address:", self.nextAddress)
 
+    # Below is a large chunk of getters and setters. I don't feel the need to describe the purpose of each.
     def getId(self):
         return self.id
 
     # Set the truck Driver
     def setDriver(self, driver):
+        # Find out what the ID of the current driver is, and set it accordingly
         if driver != None:
             self.driverId = driver.getId()
             driver.setStatus("On Truck " + str(self.getId()))
@@ -40,8 +49,11 @@ class Truck:
 
     # Add Packages to Trucks
     def setPackage(self, package):
-        if len(self.packages) < 16:
+        # See if truck has already reached its limit
+        if len(self.packages) < self.capacity:
+            package.setStatus("On Truck")
             self.packages.append(package)
+            package.setTruck(str(self.getId()))
         else:
             print("Unable to add package: The truck has reached its capacity!")
 
@@ -50,6 +62,9 @@ class Truck:
         for package in self.packages:
             if package.getId() == packageId:
                 return package
+            else:
+                print("Unable to find package:", packageId, "on truck", self.getId())
+                return None
     def getPackages(self):
         return self.packages
 
@@ -78,63 +93,97 @@ class Truck:
     def getPackageInProgress(self):
         return self.packageInProgress
 
+    def setCurrentTravelTime(self, time):
+        self.currentTravelTime = time
+
+    def getCurrentTravelTime(self):
+        return self.currentTravelTime
+
+    def getEstimatedArrivalTime(self):
+        return self.estimatedArrivalTime
+
+    def setEstimatedArrivalTime(self, time):
+        self.estimatedArrivalTime = time
+
+    def setDepartureTime(self, time):
+        self.lastDepartureTime = time
+
+    def getDepartureTime(self):
+        return self.lastDepartureTime
+
+    def getTotalMiles(self):
+        return self.totalMiles
+
+
     # Main algorithm to choose the closest package based on current location.
+    # This function is called upon arriving at the next location.
     def chooseClosestPackage(self, distanceHash):
-        # This function is called upon arriving at the next location.
+        # See if a next address has already been assigned
         if self.getNextAddress() != None:
             self.setCurrentAddress(self.getNextAddress())
         # Set a high min distance to compare to.
         minDistance = 100.0
         # Define next package to store the closest package so far
         nextPackage = None
+        # Get the Location object of the current address of the truck
+        currentLocation = distanceHash.search(self.getCurrentAddress())
         for package in self.getPackages():
             # Get the Location Object of the address that the package needs to go to.
             packageLocation = distanceHash.search(package.getAddress())
-            # Get the Location object of the current address of the truck
-            currentLocation = distanceHash.search(self.getCurrentAddress())
             # Compare the id's of the objects to ensure we are comparing them correctly on our distance tables.
             if packageLocation.getId() < currentLocation.getId():
                distance = currentLocation.getDistance(packageLocation.getId())
             else:
                distance = packageLocation.getDistance(currentLocation.getId())
-            #print("Comparing Address: ", packageLocation.getName(), "to", currentLocation.getName())
-            #print("Comparing " + str(distance) + " to " + str(minDistance))
-            # Check if the package we are currently looking at is closer than the previously found "closest" package
+            # Compare the current package's destination from current location
             if float(distance) < minDistance:
                 # Store the current smallest distance
-               minDistance = float(distance)
+                minDistance = float(distance)
                 # Store the current closest package
-               nextPackage = package
+                nextPackage = package
 
         # Update information based on the next closest package
         self.setNextAddress(nextPackage.getAddress())
         self.setPackageInProgress(nextPackage)
         self.setCurrentDistance(minDistance)
-        print("Truck", self.getId(), "is beginning to deliver package", nextPackage.getId(), "Which is at the address:", self.nextAddress + ":", minDistance, "miles away!")
-        return nextPackage
 
+    # Called to update the time the truck left its last stop, and when it will arrive at the next stop
+    def updateDepartureTimeAndEstimatedArrivalTime(self):
+        # Calculate the estimated time the package will be delivered
+        self.setCurrentTravelTime(self.getTravelTime())
+        self.setEstimatedArrivalTime(self.getDepartureTime() + self.getCurrentTravelTime())
+        # Update the time the package was chosen to be delivered
+        package = self.getPackageInProgress()
+        package.setBeginDeliveryTime(self.getDepartureTime())
+        # Set the package status to display chosen next for delivery
+        package.setStatus("Selected for next delivery")
+
+    # Function called after arriving to the package location.
+    # This updates the truck information to display where the truck and will also add the delivery time to the package.
     def deliverPackage(self, delivered_list):
         # Update truck status
         if (self.getStatus() != "En Route for Delivery"):
             self.setStatus("En Route for Delivery")
         # Get the current package being delivered
         package = self.getPackageInProgress()
+        # Update the delivery time of the package
+        package.setDeliveryTime(self.getEstimatedArrivalTime())
+        # Update package status to display on time or late
+        package.updateStatus()
+        # Update the total delivery time
+        self.totalDeliveryTime += self.getCurrentTravelTime()
+        # Update the departure time
+        self.setDepartureTime(self.getEstimatedArrivalTime())
         # Update the current address
         self.setCurrentAddress(package.getAddress())
         # Add the miles it took to travel to this delivery point to the total miles driven for the truck
         self.totalMiles += self.getCurrentDistance()
-        print("Truck", self.getId(), "is delivering package", package.getId())
         # Add the package to the list of delivered packages
         delivered_list.append(package)
-        print("package", package.getId(), "successfully added to delivered list")
         # Remove the package from the truck's package list
-        self.packages.remove(package)
+        self.getPackages().remove(package)
         # Set the current pacakge in progress to none
-        print("package", package.getId(), "successfully removed from truck")
         self.setPackageInProgress(None)
-
-        # TODO: UPDATE next address to none
-
 
     def toHub(self, distanceHash):
         # Update truck status
@@ -148,10 +197,82 @@ class Truck:
         currentLocation = distanceHash.search(self.getCurrentAddress())
         # Find out how far away the hub is
         self.setCurrentDistance(float(currentLocation.getDistance(hub.getId())))
-        print("Truck", self.getId(), "is returning to Hub. Currently", self.getCurrentDistance(), "miles away!")
-        # TODO: Travel to the hub. For now we just add the distance to total distance traveled.
-        self.totalMiles += self.getCurrentDistance()
-        self.setCurrentAddress(hub.getAddress())
-        self.setNextAddress(None)
-        self.setStatus("At Hub")
+        # Calculate how long it will tak to get to the hub
+        self.setCurrentTravelTime(self.getTravelTime())
+        # Update Estimated Arrival Time
+        self.setEstimatedArrivalTime(self.getDepartureTime() + self.getCurrentTravelTime())
 
+    # Method for once the truck actually arrives at the hub.
+    def arriveAtHub(self):
+        # Update total miles
+        self.totalMiles += self.getCurrentDistance()
+        # Update travel time
+        self.totalDeliveryTime += self.getCurrentTravelTime()
+        # Update address
+        self.setCurrentAddress("4001 S 700 E")
+        # Update next address
+        self.setNextAddress(None)
+        # Update Status
+        self.setStatus("Finished Deliveries")
+        #print("Truck", self.getId(), "returned to hub at", self.getEstimatedArrivalTime())
+
+    # getTravelTime gets the current distance to the next stop
+    # and will calculate how long it will take to get there using avg truck speed.
+    def getTravelTime(self):
+        # Get the current distance away from the next location
+        miles = self.getCurrentDistance()
+        # Calculate the total number of seconds it will take to get there
+        travelTime = (miles * 3600) / 18
+        # Turn the time into a datetime object
+        minutesPerMile = datetime.timedelta(seconds=travelTime)
+
+        return minutesPerMile
+
+    def deliverDelayedPackages(self, distanceHash):
+        # See if a next address has already been assigned
+        if self.getNextAddress() != None:
+            self.setCurrentAddress(self.getNextAddress())
+        # Set a high min distance to compare to.
+        minDistance = 100.0
+        # Define next package to store the closest package so far
+        nextPackage = None
+        # Get the Location object of the current address of the truck
+        currentLocation = distanceHash.search(self.getCurrentAddress())
+        # Find which packages have priority based on deadline
+        priority = []
+        for package in self.getPackages():
+            if package.getNote() == "Wrong address listed":
+                continue
+            if package.getDeadline() != datetime.timedelta(hours=16):
+                priority.append(package)
+
+        if len(priority) > 0:
+            for package in priority:
+                # Get the Location Object of the address that the package needs to go to.
+                packageLocation = distanceHash.search(package.getAddress())
+                # Compare the id's of the objects to ensure we are comparing them correctly on our distance tables.
+                if packageLocation.getId() < currentLocation.getId():
+                    distance = currentLocation.getDistance(packageLocation.getId())
+                else:
+                    distance = packageLocation.getDistance(currentLocation.getId())
+            # Compare the current package's destination from current location
+        else:
+            for package in self.getPackages():
+                # Get the Location Object of the address that the package needs to go to.
+                packageLocation = distanceHash.search(package.getAddress())
+                # Compare the id's of the objects to ensure we are comparing them correctly on our distance tables.
+                if packageLocation.getId() < currentLocation.getId():
+                    distance = currentLocation.getDistance(packageLocation.getId())
+                else:
+                    distance = packageLocation.getDistance(currentLocation.getId())
+        # Compare the current package's destination from current location
+        if float(distance) < minDistance:
+            # Store the current smallest distance
+            minDistance = float(distance)
+            # Store the current closest package
+            nextPackage = package
+
+        # Update information based on the next closest package
+        self.setNextAddress(nextPackage.getAddress())
+        self.setPackageInProgress(nextPackage)
+        self.setCurrentDistance(minDistance)
