@@ -1,4 +1,5 @@
-### This repo was made for a final project for my Data Structures and Algorithms II course. Below were the projects requirements:
+## This repo was made for a final project for my Data Structures and Algorithms II course. Below were the projects requirements:
+### This code was made without the help of any external libraries. To run, simply clone the repository and run main.py
 
 The WGUPS needs to determine an efficient route and delivery distribution for their daily local deliveries (DLD) because packages are not currently being consistently delivered by their promised deadline. The Salt Lake City DLD route has three trucks, two drivers, and an average of 40 packages to deliver each day. Each package has specific criteria and delivery requirements that are listed in the attached “WGUPS Package File.”
 
